@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pics/ui_element/sidebarmenu.dart';
 import 'package:http/http.dart' show get;
+import 'dart:async';
+import 'dart:convert';
+import 'models/image_model.dart';
+import 'widgets/image_list.dart';
 
 class App extends StatefulWidget {
   @override
@@ -13,15 +17,23 @@ class AppState extends State<App> {
   int counter = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
+  List<ImageModel> images = [];
+
   static doSomething(String nameitem){
 
     print(nameitem);
   }
   MainMenu myOtherClass = new MainMenu(doSomething);
 
-  void fetchImage(){
+  void fetchImage() async {
     counter++;
-    get('https://jsonplaceholder.typicode.com/photos/$counter');
+    var response = await get('https://jsonplaceholder.typicode.com/photos/$counter');
+    var jsonobject = json.decode(response.body);
+    var iamgemodel = ImageModel.fromJson(jsonobject);
+    setState(() {
+      images.add(iamgemodel);
+    });
+
   }
 
   @override
@@ -58,26 +70,7 @@ class AppState extends State<App> {
             );
           }),
         ),
-        body: Container(
-          margin: const EdgeInsets.all(15.0),
-          padding: EdgeInsets.all(5.0),
-          child: Column(
-            children: <Widget>[
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    '$counter Images',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 20.0, color: Colors.blueAccent,fontWeight:FontWeight.bold),
-                  )
-                ],
-              )
-            ],
-          ),
-        ),
+        body: ImageList(images),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: fetchImage,
